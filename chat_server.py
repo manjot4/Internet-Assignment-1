@@ -1,13 +1,83 @@
-## open a socket
-## bind to address and port
-## listen to incoming connections
-## accept connections
-## read/send
-##  server handles multiple chat clients with select baesd multiplexing.
-## chat client must be connected to same port
-## if any client sockets is readable, then client has send message to server
 
-## using threads we have a separate handling code to handle all connections 
+## number of chatrooms
+chatrooms = []
+
+## all the join_ids
+## ip_address of chat room , port of chat room
+## error code integer
+## 
+
+join_id = 0
+
+
+## sending initial message to client before sending other messages
+def newclient(conn):
+	data = conn.recv(4096)
+	## extract the chatroom name
+	## should there be different ip_addresses and diferent port numbers for different chat rooms
+	## try sending the message 
+	message = 'JOINED_CHATROOM : ', '\n', 'SERVER_IP: 0.0.0.0', '\n', 'PORT: 8888', '\n', 'ROOM_REF:', ROOM_REF, '\n', 'JOIN_ID:]', join_id
+	conn.send(message)
+	in specific chatroom
+		connection_list1.append(conn)
+		msg = 'client name has joined the chatroom'
+		broadcastmessage(chatroom, msg)
+
+def client_leaving(conn, data):
+	print " LEFT_CHATROOM: [ROOM_REF]", '\n', 'JOIN_ID: [integer previously provided by server on join]', '\n'
+	## post a message to relevant chatroom indicating that client has disconnected
+## dont terminate the connection
+
+def terminationg connection ():
+
+def newdata(conn, data):
+	## make cases of simple msg, leaving, terminating  ## create the corresponding functions of these 
+	msg = ' LEFT_CHATROOM:', ROOM_REF, '\n', 'JOIN_ID:',join_id, '\n'
+	conn.send(msg)
+	to relevant chatroom:
+	msg = 'client name has disconnected'
+	broadcastmessage(msg)
+	connection_listn.remove(conn)
+
+
+
+
+
+## starting with the server
+if __name__ == "__main__":
+	## number of connections
+	connection_list = []
+	## create a server socket
+	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	## server port  ## server ip address - '0.0.0.0'
+	port = 8888
+	s.bind(('0.0.0.0', port))
+	## no of listening connections
+	s.listen(10)
+	while 1:
+		#try:
+		ready_to_read, ready_to_write, error_sockets = select.select(connection_list, [], [])
+		for sock in ready_to_read:
+			if sock == s:
+				conn, addr = s.accept()
+				start_new_thread(newclient, (conn,))
+				#connection_list.append(conn)
+			else:    ## may use the function client disconnected
+				data = conn.recv(4096)
+				start_new_thread(newdata, (conn, data))
+				## either it is the message or client leaves or terminate connection
+		except:
+			#def error in msg   ...
+
+
+
+
+
+
+
+
+
+'''## using threads we have a separate handling code to handle all connections 
 import socket, select
 import sys
 from thread import *
@@ -67,73 +137,4 @@ if __name__ == "__main__":
 					connection_list.remove(sock)
 					continue
 	s.close()
-
-
-
-
-
-
-'''host = ''
-port = 8888
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-print 'Socket created'
-
-## binding the socket
-try:
-    s.bind((host, port))
-except socket.error , msg:
-    print 'Bind failed. Error Code : ' + str(msg[0]) + ' Message ' + msg[1]
-    sys.exit()
-     
-print 'Socket bind complete'
-
-## you cannot bind two sockets to the same port
-## 10 is the number of incoming connections that are kept waiting if the program is busy
-
-
-s.listen(10)
-print 'socket now listening'
-
-## function for handling conncetions. This will be used to create threads
-
-## while 1:  put in a loop, live srever,, conn.sendall() comes in this
-
-conn, addr = s.accept()
-#display client information
-print 'Connected with ' + addr[0] + ':' + str(addr[1])
-
-data = conn.recv(1024)
-
-conn.sendall(data)
- 
-conn.close()
-s.close()'''
-
-'''def clientthread(conn):
-    #Sending message to connected client
-    conn.send('Welcome to the server. Type something and hit enter\n') #send only takes string
-     
-    #infinite loop so that function do not terminate and thread do not end.
-    while True:
-         
-        #Receiving from client
-        data = conn.recv(1024)
-        reply = 'OK...' + data
-        if not data: 
-            break
-     
-        conn.sendall(reply)
-     
-    #came out of loop
-    conn.close()
- 
-#now keep talking with the client
-while 1:
-    #wait to accept a connection - blocking call
-    conn, addr = s.accept()
-    print 'Connected with ' + addr[0] + ':' + str(addr[1])
-     
-    #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
-    start_new_thread(clientthread ,(conn,))
- 
-s.close()'''
+'''
