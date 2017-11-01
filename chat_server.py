@@ -39,12 +39,11 @@ join_ids = []
 join_id = 1
 
 ## make connection list for each room
-def make_new_connection_list(ROOM_REF):
-	return '_'.join(('connection_list', str(ROOM_REF)))
+lists = []
 
 ## function to broadcast chat messages to all connected clients
 def broadcast_data(ROOM_REF, conn, message):
-	for socke in connection_list[ROOM_REF]:   #### ---- ?????
+	for socke in lists[ROOM_REF]:   
 		if socke != s and socke != conn:
 			socke.send(message)  ## broadcast msg to every client in that chatroom 	
 
@@ -59,8 +58,7 @@ def send_join_message(conn, room_name, ROOM_REF, client_name):
 	## now send the message to that chatroom
 	for i in chatrooms:
 		if i == ROOM_REF:
-			a = make_new_connection_list(ROOM_REF)
-			lists.append()   
+			lists[i].append(conn)   
 			msg = client_name, 'has joined the chatroom'
 			broadcast_data(ROOM_REF, conn, msg)
 
@@ -81,6 +79,7 @@ def join_chatroom(conn, data):
 	ROOM_REF = m.group(3)
 	## appending room_ref in chatrooms
 	chatrooms.append(ROOM_REF)
+	lists.append([])
 	send_join_message(conn, room_name, ROOM_REF, client_name)
 
 def send_leave_message(conn, ROOM_REF, join_id, client_name):
@@ -90,7 +89,7 @@ def send_leave_message(conn, ROOM_REF, join_id, client_name):
 	## posting a message in relevant chatroom
 	for i in chatrooms:
 		if i == ROOM_REF:
-			lists.remove(conn) #--->?????  remove the client from that chatroom
+			lists[i].remove(conn) #  remove the client from that chatroom
 			msg = client_name, 'has left the chatroom'
 			broadcast_data(ROOM_REF, conn, msg)
 
@@ -181,6 +180,7 @@ if __name__ == "__main__":
 					data = sock.recv(4096)
 					start_new_thread(newdata, (sock, data))  
 				except:
+					integer = integer + 1
 					data = 'ERROR CODE :', integer  ## dont know this integer
 					sock.send(data)
 
