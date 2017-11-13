@@ -1,72 +1,47 @@
+## CHAT SERVER 
+## MANJOT SINGH
+## 16338467
 
-## system should handle multiple clients simulataneously -- test this
-#see that later
-## what .sh script he is talking abt
-## terminate the service by 'kill\n' port number
-## default func to not to process other messages
-## should respond to message 'helo txt'
-## identification and shutdown of server
-## 
+## importing all libraries
+import re, sys
+from thread import *
+import socket, select
 
-
-## recv data, make a function to identify data, either it could be:
-## 1. join a chatroom -- make a join_chatroom function ----done
-## --> make a function which sends message to client  ---done 
-## --> make a function which broadcasts the message --- done
-## 2. leave a chatroom
-## --> recv data and identify data.. make a fnc to send a msg leave msg -- done
-## --> post a msg to relevant chatroom, --done
-## 3. send a message to a chatroom
-## --> recv the message, parse it and make a fnc to broadcast message -- done
-## 4. Disconnect service 
-## -> terminate the client-server connection.. -- done
-
-	
-## should there be different ip_addresses and diferent port numbers for different chat rooms
-## create different connection lists
-
-# splitting 1 from room1
-import re
+## separates numbers and text
 r = re.compile("(\s)([a-zA-Z]+)([0-9]+)")
 
-##error message numbers
-integer = 0
 ## list of chatrooms
-chatrooms = []
+chatrooms = []   ## contains number of chatrooms
 
-## all the join_ids
-join_ids = []
-join_id = 1
+## contains relevant clients in every chatrooms
+client_list = [[],[],[]]
 
-## make connection list for each room
-lists = []
+## it contains reqd connections in every chatrooms 
+lists = [[],[],[],[],[],[],[],[],[]]  
 
-## function to broadcast chat messages to all connected clients
-def broadcast_data(ROOM_REF, conn, message):
-	for socke in lists[ROOM_REF]:   
-		if socke != s and socke != conn:
-			socke.send(message)  ## broadcast msg to every client in that chatroom 	
 
-def send_join_message(conn, room_name, ROOM_REF, client_name):
+
+## function to send joining message to chatroom
+def broadcast_data(ROOM_REF, conn, message):		
+	for socke in lists[int(ROOM_REF)]:   ## considering every socket in that chatroom
+		if socke != s:
+			socke.send(message)   	
+
+## sending client the join message
+def send_join_message(conn, room_name, ROOM_REF, client_name, client_no):
 	## send the message to client 
-	message = 'JOINED_CHATROOM :', room_name, '\nSERVER_IP: 0.0.0.0\nPORT: 8888\nROOM_REF:', ROOM_REF, '\nJOIN_ID:', join_id
+	message = 'JOINED_CHATROOM:'+ str(room_name)+'\nSERVER_IP:10.62.0.47\nPORT:8888\nROOM_REF:'+ str(ROOM_REF)+'\nJOIN_ID:'+ str(client_no)+'\n'
 	conn.send(message)
-	## appending join_id
-	join_ids.append(join_id)
-	## incrementing join_id
-	join_id = join_id + 1
-	## now send the message to that chatroom
-	for i in chatrooms:
-		if i == ROOM_REF:
-			lists[i].append(conn)   
-			msg = client_name, 'has joined the chatroom'
-			broadcast_data(ROOM_REF, conn, msg)
+## now send the message to that chatroom
+	if int(ROOM_REF) in chatrooms:
+		msg = 'CHAT:'+str(ROOM_REF)+'\nCLIENT_NAME:'+str(client_name)+'\n'+'MESSAGE:'+str(client_name) + ' has joined this chatroom.\n\n'
+		lists[int(ROOM_REF)].append(conn)
+		broadcast_data(ROOM_REF, conn, msg)
 
-## info send by client stored in extract
-
+## joining the chatroom
 def join_chatroom(conn, data):
-	extract = []
-	## extract the chatroom name
+	extract = [] ## relevant data will be stored here...
+	## extract relevant data like client name, chatroom name etc. 
 	ext = data.split('\n')
 	for i in ext:
 		b = i.split(':')
@@ -77,22 +52,37 @@ def join_chatroom(conn, data):
 	## getting the room ref number from chatroom name
 	m = r.match(extract[0][1])
 	ROOM_REF = m.group(3)
+	## join_id will be client no
+	a = r.match(extract[3][1])
+	client_no = a.group(3)
+	## appending client no in client_list
+	client_list[int(ROOM_REF)].append(client_no)   
 	## appending room_ref in chatrooms
-	chatrooms.append(ROOM_REF)
-	lists.append([])
-	send_join_message(conn, room_name, ROOM_REF, client_name)
+	if ROOM_REF not in chatrooms:
+		chatrooms.append(int(ROOM_REF))  	
+	## sending message to client for joining
+	send_join_message(conn, room_name, ROOM_REF, client_name, client_no)
 
+
+## function to send leaving messages to chatroom
+def broadcast_data_leaving(ROOM_REF, conn, message):		
+	for socke in lists[int(ROOM_REF)]:
+		if socke != s:
+			socke.send(message)
+	lists[int(ROOM_REF)].remove(conn)
+
+## sending leave message to client
 def send_leave_message(conn, ROOM_REF, join_id, client_name):
 	## send the message to client
-	message = 'LEFT_CHATROOM:', ROOM_REF, '\nJOIN_ID:', join_id
+	message = 'LEFT_CHATROOM:'+str(ROOM_REF)+'\nJOIN_ID:'+str(join_id)+'\n'
+	print 'sending message left'
 	conn.send(message)
 	## posting a message in relevant chatroom
-	for i in chatrooms:
-		if i == ROOM_REF:
-			lists[i].remove(conn) #  remove the client from that chatroom
-			msg = client_name, 'has left the chatroom'
-			broadcast_data(ROOM_REF, conn, msg)
+	if int(ROOM_REF) in chatrooms:
+		msg = 'CHAT:'+str(ROOM_REF)+'\nCLIENT_NAME:'+str(client_name)+'\n'+'MESSAGE:'+str(client_name) + ' has left this chatroom.\n\n'
+		broadcast_data_leaving(ROOM_REF, conn, msg)
 
+## leaving chatroom
 def leave_chatroom(conn, data):
 	extract = []
 	## extract the room reference number, join_id and client_name
@@ -100,19 +90,24 @@ def leave_chatroom(conn, data):
 	for i in ext:
 		b = i.split(':')
 		extract.append(b)
-	ROOM_REF = extract[0][1]
+	ROOM_REF = extract[0][1]  ## IN STRINGS
 	join_id = extract[1][1]
 	client_name = extract[2][1]
+	# join_id will be client_no 
+	a = r.match(extract[2][1])
+	client_no = a.group(3)
+	client_list[int(ROOM_REF)].remove(client_no)
 	## calling send leave message function
-	send_leave_message(conn, ROOM_REF, join_id, client_name, message)
+	send_leave_message(conn, ROOM_REF, join_id, client_name)
 
+## sending chat message in every chatroom
 def sending_message(conn, ROOM_REF, client_name, message):
 	## sending the message
-	data = 'CHAT:', ROOM_REF, '\nCLIENT_NAME:', client_name, '\nMESSAGE:', message, '\n\n'
-	for i in chatrooms:
-		if i == ROOM_REF:
-			broadcast_data(ROOM_REF, conn, data)
+	data = 'CHAT:'+str(ROOM_REF)+'\nCLIENT_NAME:'+str(client_name)+'\nMESSAGE:'+str(message)+'\n\n'
+	if int(ROOM_REF) in chatrooms: 
+		broadcast_data(ROOM_REF, conn, data)
 
+## messaging chatroom
 def msg_chatroom(conn, data):
 	extract = []
 	## extract the room reference number, join_id, client_name and message
@@ -127,33 +122,55 @@ def msg_chatroom(conn, data):
 	## sending message to everyone in that chatroom
 	sending_message(conn,ROOM_REF, client_name, message)
 
+## sending data about client disconnecting in every chatroom
+def broadcast_data_disconnect(ROOM_REF, conn, message, client_no):		
+	for socke in lists[(ROOM_REF)]:
+		if socke != s:
+			socke.send(message)
+	lists[(ROOM_REF)].remove(conn)  ## removing the client connection from every chatroom
+
+## disconnecting service
 def disconnecting_service(conn, data):
 	extract = []
-	## extracting client_name 
+	## extracting client_name, client_no 
 	ext = data.split('\n')
 	for i in ext:
 		b = i.split(':')
 		extract.append(b)
 	client_name = extract[2][1]
-	### if a particular connection is to be terminated, it should be removed from every connection list
+	a = r.match(extract[2][1])
+	client_no = a.group(3)
+	## if a particular connection is to be terminated, it should be removed from every connection list
 	## terminating the connection
 	connection_list.remove(conn)
+	for i in range(1,3):
+		if client_no in client_list[i]:
+			msg = 'CHAT:'+str(i)+'\nCLIENT_NAME:'+str(client_name)+'\n'+'MESSAGE:'+str(client_name) + ' has left this chatroom.\n\n'
+			client_list[i].remove(client_no)
+			broadcast_data_disconnect(i, conn, msg, client_no)
+
+
 
 def newdata(conn, data):
+	## splitting the data
 	info = data.split(':')
-	if info[0] == 'JOIN_CHATROOM':
+	print info[0]
+	if (info[0] == 'JOIN_CHATROOM'):
 		# make a function for join chatroom
 		join_chatroom(conn, data)
-	elif info[0] == 'LEAVE_CHATROOM'
+	elif (info[0] == 'LEAVE_CHATROOM'):
 		# make a function for leave chatroom
 		leave_chatroom(conn, data)
-	elif info[0] == 'CHAT':
+	elif (info[0] == 'CHAT'):
 		# make a function for message chatting
 		msg_chatroom(conn, data)
-	else:
+	elif (info[0] == 'DISCONNECT'):
 		## make a function for disconnecting service
-		disconnecting_service(conn, data)	 
-
+		disconnecting_service(conn, data)
+	elif (info[0] == 'HELO BASE_TEST\n'):
+		msgg = 	'HELO BASE_TEST\nIP:10.62.0.47\nPORT:8888\nStudentId:16338467\n'
+		conn.sendall(msgg)	
+ 
 
 
 ## starting with the server
@@ -162,29 +179,25 @@ if __name__ == "__main__":
 	connection_list = []
 	## create a server socket
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	## server port  ## server ip address - '0.0.0.0'
+	## server port  
 	port = 8888
 	s.bind(('0.0.0.0', port))
-	## no of listening connections
-	s.listen()
+	## no of listening connections; by default takes 5 at a time.
+	s.listen(10)  
 	connection_list.append(s)
 	while 1:
+		## reading the server socket
 		ready_to_read, ready_to_write, error_sockets = select.select(connection_list, [], [])
 		for sock in ready_to_read:
-			if sock == s:
-				conn, addr = s.accept()
-				#start_new_thread(newclient, (conn,))  #----  while making new connection, how does I know it sends message in it
+			if sock == s:   ## main socket has some data
+				conn, addr = s.accept()   ## accepting new connections
 				connection_list.append(conn)
-			else: 
-				try:
-					data = sock.recv(4096)
-					start_new_thread(newdata, (sock, data))  
-				except:
-					integer = integer + 1
-					data = 'ERROR CODE :', integer  ## dont know this integer
-					sock.send(data)
-
-
+			else:  ## getting new connections
+				data = sock.recv(4096)  
+				if (data == 'KILL_SERVICE\n'):     
+					sys.exit()  ## stop the server if KILL_SERVICE msg received
+				else:
+					start_new_thread(newdata, (sock, data))  ## start new thread for every connection
 
 
 
