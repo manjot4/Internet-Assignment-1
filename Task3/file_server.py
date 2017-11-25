@@ -1,58 +1,70 @@
 from flask import Flask, jsonify, request
-import requests
-fs.run = Flask(__name__)
-
-## file server is going to be called by client api
-##--> client will either ask for file access
-## -> server must give client the file...
-## when writing stuff, 1. check the version of file that client wrote.. if new update the file 
-## later work -- client needs to make sure that it has correct version of file at what time ???..
-
-## file server is going to be called by directory server -- for what...
-## 
-
-file_direc = [
-	{'id' : 'mantena.rtf',
-	'filename' : '/Users/manjotsingh/desktop/mantena.rtf',
-	'version': 0 }
-	{'id' : 'second.rtf',
-	'filename' : '/Users/manjotsingh/desktop/second	.rtf',
-	'version': 0 }
+import requests, json
+from flask_restful import Resource, Api, reqparse
+app = Flask(__name__)
+fs = Api(app)
 
 
-## return file to client
-@fs.route('/',methods=['GET'])    
-def get_file():                      ## all for getting new file to read 
-    file_name = request.args.get('file')   ## check it with strings
-    for files in file_direc:
-    	if files['id'] == file_name :
-    		info = {'machine id': '', 'path to file' : files['filename']}
-    return jsonify(info)
+file_direc = {
+	'first.txt': {0:'/Users/manjotsingh/desktop/files/first.txt'},
+	'second.txt': {0:'/Users/manjotsingh/desktop/files/second.txt'}
+}
 
 
-@fs.route('/', methods=['PUT'])
-def update_file():
-	file_name = request.args.get('file')
-	file_version = request.args.get('version')
-	for files in file_direc:
-		if files['id'] == file_name:
-			if files['version'] < file_version:
-				update_info = ## get either the file or filename
-				return jsonify(update_info)
+#class name(Resource):
+
+class file_s(Resource):
+	def get(self, file_name):
+		parser = reqparse.RequestParser()
+		parser.add_argument('file', location = 'json')
+		args = parser.parse_args()
+		filepath = args['file']
+		filename = str(file_name)
+		#for k,v in file_direc.items():
+		#	if str(k) == filename:
+		#		filepath =
+		f = open(str(filepath), 'r')
+		data = f.read()
+		f.close()
+		return {'file_data' : data}
+	def put(self, file_name):
+		pass	
+		## will be given full modified file, open the same file, replace its data with new data
+		## make sure everyone who has those  files have their updated version....
+fs.add_resource(file_s, '/file_name')
+
+def getmachineid():
+	params = {'machine_id':'hello', 'port':8081, 'host':'0.0.0.0'}
+	response = requests.get('http://0.0.0.0:8080/', json = params)
+	response = response.text
+	response = json.loads(response)
+	machine_id = response['machine_id']
+	print 'machine_id', machine_id
+	## sending the list of files for mapping
+	files = {}  ## files sent to dir_ser
+	for k,v in file_direc.items():
+		for i in v:
+			filee = {str(k) : v[i]}
+			files.update(filee)
+	print 'files being sent:', files
+	posting = requests.post('http://0.0.0.0:8080/'+str(machine_id), json = files)
+	posting = posting.text
+	posting = json.loads(posting)
+	status = posting['data files']
+	print 'status:', status
+	#return 		
 
 
 
-
-## fs asks for machine id from dir server
-def machine_id():
-	machine_id = requests.get('end point', )
-	## get machine id by any way
-
-
-## once it gets machine id, it give direc server a list of files it has with it.
-	info = requests.post('end point ', data = all info for files)
+fs.add_resource(file_s, '/files/<file_name>')
 
 if __name__ == '__main__':
-	fs.run(debug=True, port = 8081, host = '0.0.0.0')
-	## as soon as it wakes up, registers with directory server for machine id
+	getmachineid()
+	print 'file_direc', file_direc
+	app.run(debug=True, port = 8081, host = '0.0.0.0')
+	## file server wakes up, goes to dir server for a machine id and when it gets, gives dir a list of files..
+	#mach_id_dir = machine_id
+
+
+
 

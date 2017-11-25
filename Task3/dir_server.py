@@ -1,43 +1,110 @@
 from flask import Flask, jsonify, request
-ds.run = Flask(__name__)
-## check for function argumets, nfs  
+import requests, json
+from flask_restful import Resource, Api, reqparse
+app = Flask(__name__)
+ds = Api(app)
+
+
+machines = {}
 id = 0
+host = 0
+port = 0
 
-file_direc = [
-	{'id' : 'mantena.rtf',
-	'filename' : '/Users/manjotsingh/desktop/mantena.rtf',
-	'version':  }
-	{'id' : 'second.rtf',
-	'filename' : '/Users/manjotsingh/desktop/second	.rtf' }
+## giving client the machine id
+class fs_id(Resource):
+	def get(self):
+		parser = reqparse.RequestParser()
+		parser.add_argument('machine_id', location = 'json')
+		parser.add_argument('port', location = 'json')
+		parser.add_argument('host', location = 'json')
+		args = parser.parse_args()
+		global host
+		global port
+		host = args['host']
+		port = args['port']
+		global id
+		id = id+1
+		return {'Registered': 'success', 'machine_id' : id}
+ds.add_resource(fs_id, '/')
 
-@ds.route('/',methods=['GET'])    
-def get_file():                      ## all for getting new file to read 
-    file_name = request.args.get('file')   ## check it with strings
-    for files in file_direc:
-    	if files['id'] == file_name :
-    		info = {'machine id': '', 'path to file' : files['filename']}
-    return jsonify(info)
+## udating his list of files
+class fs_post(Resource):
+	def post(self, machine_id):
+		response = request.json
+		dictn = {}
+		for i in response:
+			data = response[str(i)]
+			info = {str(i) : str(data)}
+			dictn.update(info)
+		global host
+		global port	
+		dictn.update({'host':str(host)})
+		dictn.update({'port':port})
+		name = str(machine_id)
+		final_info = { name : dictn}
+		machines.update(final_info)
+		print machines
+			#print 'file_direc1', file_direc1  ## create a direc with a name
+		return {'data files' : 'received'}
+ds.add_resource(fs_post, '/<int:machine_id>')		
 
-@ds.route('/',methods=['POST'])    
-def write_file():
-	return "write to file "
+## receiving name of file and giving back port, ip, and filepath
+class cl_ap(Resource):
+	def get(self, file_name):	
+			filename = file_name
+			for k,v in machines:
+				for i in v:
+					if str(i) == str(filename):
+						## create all info that we'll be sending to client
+						filepath = v[str(i)]
+						host = v['port']
+						dictn = {}
+						info = {str(i):str(filepath)}
+						dictn.update(info)
+						dictn.update({'port':port})
+		return jsonify(dictn)				
 
 
-## giving file server machine id
-@ds.route('/', methods = 'GET')
-def machine_id():
-	r = request.json
-	r = str(r['machineid'])
-	id = id + 1
-	data = {'id' : id}
-	return jsonify(data)
 
-
-## receiving file info from file server
-@ds.route('/', methods = 'POST')
-def file_info():
+ds.add_resource(cl_ap, '/<string:file_name>')
 
 
 if __name__ == '__main__':
-	ds.run(debug=True, host = '0.0.0.0', port = 8080)
+	app.run(debug=True, host = '0.0.0.0', port = 8080)
+
+
+
+
+#d = {}
+		#for k, v in args.items():
+		#	d[k] = v
+		#print d	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
