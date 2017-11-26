@@ -28,8 +28,21 @@ class file_s(Resource):
 		f.close()
 		#print 'read all file'
 		return {'file_data' : data}
-	def put(self, file_name):
-		pass	
+
+		## client proxy itself gives the filepath 
+	def post(self, file_name):
+		parser = reqparse.RequestParser()
+		parser.add_argument('file', location = 'json')
+		parser.add_argument('summary', location = 'json')
+		args = parser.parse_args()
+		filepath = args['file']	
+		summary = args['summary']
+		## appending the file
+		f = open(str(filepath), 'a')
+		f.write(str(summary))
+		f.close()
+		print 'writing done'
+		return {'writing':'successful'}
 		## will be given full modified file, open the same file, replace its data with new data
 		## make sure everyone who has those  files have their updated version....
 fs.add_resource(file_s, '/<string:file_name>')
@@ -65,5 +78,3 @@ if __name__ == '__main__':
 	app.run(debug=True, port = 8081, host = '0.0.0.0')
 	## file server wakes up, goes to dir server for a machine id and when it gets, gives dir a list of files..
 	#mach_id_dir = machine_id
-
-
