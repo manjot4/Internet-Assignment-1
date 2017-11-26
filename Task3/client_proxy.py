@@ -16,6 +16,8 @@ port = response['port']
 print 'filepath:', filepath
 print 'port:', port
 
+## if read perform below things::
+
 ## client gets all info about file server...
 ## sending filepath which is received from dir server along with filename
 
@@ -26,17 +28,32 @@ print 'port:', port
 #print 'printing file_data\n', file_data
 
 
+# if write -- perform below things :::
+## for modifying the file, client first goes to ls, gets the key, then goes to ds, then to fs....
 
+## client going to ls and gets data
 
-## file is being read on remote server by server sending the file back......
-
-## modifying the file
-## making additions to file, adding text to file, afterwards add anything to files.....
-
-response = requests.post('http://0.0.0.0:'+str(port)+'/'+str(filename), json = {'file': str(filepath) , 'summary': 'writing experimentation again and again'}) 
+response = requests.get('http://0.0.0.0:8082/'+str(filename))
+print 'gone to lock server'
 response = response.text
 response = json.loads(response)
-status = response['writing']
-print 'status:', status
+print 'checking'
+#lock_key = response['key']
+status = response['status']  ## should be sent for going to dir server, else rejected...for now
+
+## checking to go for file server..
+if str(status) == 'sent':
+	## going to file_Server
+	response = requests.post('http://0.0.0.0:'+str(port)+'/'+str(filename), json = {'file': str(filepath) , 'summary': 'writing experimentation again and again'}) 
+	response = response.text
+	response = json.loads(response)
+	status = response['writing']
+	print 'status:', status
+else:
+	pass  ## either loop again or abort
+
+
+
+
 
 

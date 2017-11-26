@@ -45,7 +45,7 @@ class fs_post(Resource):
 		machines.update(final_info)
 		print machines
 			#print 'file_direc1', file_direc1  ## create a direc with a name
-		return {'data files' : 'received'}
+		return {'data files_ds' : 'received'}
 ds.add_resource(fs_post, '/<int:machine_id>')		
 
 ## receiving name of file and giving back port, ip, and filepath

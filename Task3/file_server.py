@@ -43,8 +43,7 @@ class file_s(Resource):
 		f.close()
 		print 'writing done'
 		return {'writing':'successful'}
-		## will be given full modified file, open the same file, replace its data with new data
-		## make sure everyone who has those  files have their updated version....
+
 fs.add_resource(file_s, '/<string:file_name>')
 
 def getmachineid():
@@ -60,11 +59,20 @@ def getmachineid():
 		for i in v:
 			filee = {str(k) : v[i]}
 			files.update(filee)
+	print 'sending files to directory server'   #{filename: filepath, filename:filepath, ...}		
 	print 'files being sent:', files
 	posting = requests.post('http://0.0.0.0:8080/'+str(machine_id), json = files)
 	posting = posting.text
 	posting = json.loads(posting)
-	status = posting['data files']
+	status = posting['data files_ds']
+	print 'status:', status
+
+	## sending same things to lock server as well
+	print 'sending files to lock server'
+	posting = requests.post('http://0.0.0.0:8082/'+str(machine_id), json = files)
+	posting = posting.text
+	posting = json.loads(posting)
+	status = posting['data files_ls']
 	print 'status:', status
 	#return 		
 
@@ -78,3 +86,7 @@ if __name__ == '__main__':
 	app.run(debug=True, port = 8081, host = '0.0.0.0')
 	## file server wakes up, goes to dir server for a machine id and when it gets, gives dir a list of files..
 	#mach_id_dir = machine_id
+
+
+
+
