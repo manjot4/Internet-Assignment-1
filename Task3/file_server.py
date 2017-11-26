@@ -26,12 +26,13 @@ class file_s(Resource):
 		f = open(str(filepath), 'r')
 		data = f.read()
 		f.close()
+		#print 'read all file'
 		return {'file_data' : data}
 	def put(self, file_name):
 		pass	
 		## will be given full modified file, open the same file, replace its data with new data
 		## make sure everyone who has those  files have their updated version....
-fs.add_resource(file_s, '/file_name')
+fs.add_resource(file_s, '/<string:file_name>')
 
 def getmachineid():
 	params = {'machine_id':'hello', 'port':8081, 'host':'0.0.0.0'}
@@ -56,7 +57,7 @@ def getmachineid():
 
 
 
-fs.add_resource(file_s, '/files/<file_name>')
+#fs.add_resource(file_s, '/files/<file_name>')
 
 if __name__ == '__main__':
 	getmachineid()
@@ -64,7 +65,5 @@ if __name__ == '__main__':
 	app.run(debug=True, port = 8081, host = '0.0.0.0')
 	## file server wakes up, goes to dir server for a machine id and when it gets, gives dir a list of files..
 	#mach_id_dir = machine_id
-
-
 
 

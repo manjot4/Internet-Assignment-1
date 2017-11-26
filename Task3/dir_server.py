@@ -52,7 +52,7 @@ ds.add_resource(fs_post, '/<int:machine_id>')
 class cl_ap(Resource):
 	def get(self, file_name):	
 			filename = file_name
-			for k,v in machines:
+			for k,v in machines.items():
 				for i in v:
 					if str(i) == str(filename):
 						## create all info that we'll be sending to client
@@ -62,7 +62,8 @@ class cl_ap(Resource):
 						info = {str(i):str(filepath)}
 						dictn.update(info)
 						dictn.update({'port':port})
-		return jsonify(dictn)				
+			print 'sent all info to go to file server'		## sending {filename:filepath, port:port}		
+			return jsonify(dictn)				
 
 
 
@@ -71,40 +72,4 @@ ds.add_resource(cl_ap, '/<string:file_name>')
 
 if __name__ == '__main__':
 	app.run(debug=True, host = '0.0.0.0', port = 8080)
-
-
-
-
-#d = {}
-		#for k, v in args.items():
-		#	d[k] = v
-		#print d	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
