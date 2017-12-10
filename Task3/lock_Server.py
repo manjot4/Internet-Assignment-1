@@ -5,8 +5,8 @@ app = Flask(__name__)
 ls = Api(app)
 
 ## managing different file servers
-machines = {}   ##{1:{first.txt :1, second.txt:1}, 2: ..}
-#{1:{}}
+machines = {}   
+#{'1': {'files': {'first.txt': 1, 'second.txt': 1}, 'files1': {'second1.txt': 1, 'first.txt': 1}}, 2:...}
 
 ## lock key given to every file initially.
 key = 1
@@ -83,4 +83,4 @@ class cp_ls(Resource):
 ls.add_resource(cp_ls, '/<string:file_name>')
 
 if __name__ == '__main__':
-	app.run(debug=True, host = '0.0.0.0', port = 8082)
+	app.run( host = '0.0.0.0', port = 8082)

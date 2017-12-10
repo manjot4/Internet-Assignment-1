@@ -1,15 +1,28 @@
+# multiple file servers - make 2 - to ensure that both registers with diff machine id
+# ensure client goes to multiple file servers
+# ------------------------------------------------------#
+# will do tomorrow
+# master raedy
+# divide by total number
+# check again cc with amber
+# run on one more repository
+#-------------------------#
+# write script for chat server
+
+
 ## client api
 import requests, json, os
 import os.path
 from pathlib import Path
-## client says to client proxt that it wants to read this file
-# will do version check later on
-filename = 'first.txt'	
+
+
+
+cache_direc = {}   # {client1: {file1 : version, file2 : version}, client2 : {file1:version, file2:version} }
 
 def gng_to_dir_ser(filename):
-	print 'starting the process to go to file_server\n'
+	print 'going to dir_server and starting the process to go to file_server\n'
 	response = requests.get('http://0.0.0.0:8080/'+str(filename))
-	print 'gng to dir server'
+	print 'getting response from dir_server\n'
 	response = response.text
 	response = json.loads(response)
 	filedir = response[str(filename)]
@@ -23,44 +36,97 @@ def gng_to_file_ser(filedir, port, filename):
 	response = response.text
 	response = json.loads(response)
 	file_data = response['file_data']
-	return file_data
-	
+	file_version = response['version']
+	return file_data, file_version	
 
-def readfile(filename):
+# have to check which file dir server returns
+def gng_to_file(filedir, port, filename, version):
+	response = requests.get('http://0.0.0.0:'+str(port)+'/', json = {'file_info': str(filedir), 'filename' : str(filename), 'version' : str(version)})  
+	response = response.text
+	response = json.loads(response)
+	status = response['status']
+	print status
+	return status
+
+
+def initialize_dir(filename, client_id):
+	filedirname = 'cache' + str(client_id)
+	# create dir for that client
+	if not os.path.exists(str(filedirname)):
+		os.makedirs(str(filedirname))
+	return str(filedirname)
+
+def readfile(filename, client_id):
+	global cache_direc
 	# check if file exists locally
-	newpath = '/Users/manjotsingh/desktop/local_files' 
-	if not os.path.exists(newpath):
-		os.makedirs(newpath)
-	file_path = '/Users/manjotsingh/desktop/local_files/'+str(filename)
+	#initialize the directory for that client
+	#version = 0
+	filedirname = initialize_dir(filename, client_id)
+	# filepath for file
+	file_path  = str(filedirname) + '/' + str(filename) 
+	# -----
 	filepath = Path(str(file_path))
 	if filepath.is_file():   # checking if file is there -> got to dir server -> file server, version, then read file locally
-		f = open(str(file_path), 'r')
-		data = f.read()
-		f.close()
-		print 'file_data got locally'
-		print data	  # will be returning this data over back to client
-	else:
+		# going to dir server .... got filedir and port
 		filedir, port = gng_to_dir_ser(filename)
-		file_data = gng_to_file_ser(filedir, port, filename) 
+		# gng to file server.. to check the version of file .. first getting the version if file exists locally
+		for i,v in cache_direc.items():
+			if str(i) == str(client_id):
+				for m,n in v.items():
+					if str(m) == str(filename):
+						ver = v[str(m)]
+						print 'ver', ver
+
+		print  ver
+		# going to fileserver with filedir, port, version and filename				
+		status = gng_to_file(filedir, port, filename, ver)
+
+		if (str(status) == 'same'):
+			f = open(str(file_path), 'r')
+			data = f.read()
+			f.close()
+			print 'file_data got locally'
+			print data	  
+		else:    # files server should also return version
+			file_data, file_version = gng_to_file_ser(filedir, port, filename) 
+			print 'printing file_data\n', file_data  
+			print 'version', file_version
+			f = open(str(file_path), 'w') # writing data in a file ... overwriting the file
+			f.write(file_data)
+			f.close() 
+			for k,v in cache_direc.items():
+				if str(k) == str(client_id):
+					v.update({str(filename) : str(file_version)})
+			
+	else:
+		print 'new file'
+		filedir, port = gng_to_dir_ser(filename)
+		file_data, file_version = gng_to_file_ser(filedir, port, filename) 
 		print 'printing file_data\n', file_data  
-		# caching it
+		print 'version', file_version
+		
 		f = open(str(file_path), 'w') # writing data in a file
 		f.write(file_data)
 		f.close() 
+		info = {str(filename) : str(file_version)}
+		cache_direc.update({str(client_id) : info})
+		
+		print cache_direc		
 
-def writefile(filename, content):
-	# will do caching for this soon
-	# first got to lock server
+def writefile(filename, client_id):
+	# first go to lock server
 	response = requests.get('http://0.0.0.0:8082/'+str(filename))
 	print 'gone to lock server'
 	response = response.text
-	print 'response', response
 	response = json.loads(response)
-	print 'checking'
+	print 'checking response'
 	status = response['status']  
 
 ## checking to go for file server..
 	if str(status) == 'sent':
+		# ask the client to write
+		content =  raw_input('Type to content to write\n')
+		print 'content : \n', str(content)
 		# gng to dir server to get data
 		filedir, port = gng_to_dir_ser(filename)
 		## going to file_Server
@@ -75,73 +141,7 @@ def writefile(filename, content):
 		status = posting['status']
 		print 'status', status
 	else:
-		print 'come back later'  ## write abort function..
-
-
-
-'''
-#before running, it makes a local folder on client side
-newpath = '/Users/manjotsingh/desktop/local_files' 
-if not os.path.exists(newpath):
-	os.makedirs(newpath)
-
-# can give newpath to it
-file_path = '/Users/manjotsingh/desktop/local_files/'+str(filename)
-filepath = Path(str(file_path))
-if filepath.is_file():   # checking if file is there -> got to dir server -> file server, version, then read file locally
-	f = open(str(file_path), 'r')
-	data = f.read()
-	f.close()
-	print 'file_data got locally'
-	print data	  # will be returning this data over back to client
-else:
-	print "starting the process to get the file from server"
-	response = requests.get('http://0.0.0.0:8080/'+str(filename))
-	print 'got file name '
-	response = response.text
-	response = json.loads(response)
-	#filepath = response[filename]
-	filedir = response[str(filename)]
-	port = response['port']
-	#print 'filepath:', filepath
-	print 'filedir: ', filedir
-	print 'port:', port  
-
-	## gng to server  // now change server...
-	response = requests.get('http://0.0.0.0:'+str(port)+'/'+str(filename), json = {'file_info': str(filedir)})  
-	response = response.text
-	response = json.loads(response)
-	file_data = response['file_data']
-	print 'printing file_data\n', file_data  # returning this data back to client...
-
-# for caching
-	f = open(str(file_path), 'w')
-	f.write(file_data)
-	f.close() 
-
-
-
-## client going to ls and gets data
-
-response = requests.get('http://0.0.0.0:8082/'+str(filename))
-print 'gone to lock server'
-response = response.text
-response = json.loads(response)
-print 'checking'
-#lock_key = response['key']
-status = response['status']  ## should be sent for going to dir server, else rejected...for now
-
-## checking to go for file server..
-if str(status) == 'sent':
-	## going to file_Server
-	response = requests.post('http://0.0.0.0:'+str(port)+'/'+str(filename), json = {'file_info': str(filedir) , 'summary': 'writing experimentation again and again'}) # appending
-	response = response.text
-	response = json.loads(response)
-	status = response['writing']
-	print 'status:', status
-else:
-	pass  ## either loop again or abort
-'''
+		print 'come back later'  
 
 
 

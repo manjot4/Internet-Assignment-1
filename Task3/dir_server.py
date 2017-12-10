@@ -5,7 +5,9 @@ app = Flask(__name__)
 ds = Api(app)
 
 
-machines = {}
+machines = {} # see how it is storing those things 
+#{'1': {'files': [u'first.txt', u'second.txt'], 'files1': [u'second1.txt', u'first.txt'], 'host': '0.0.0.0', 'port': '8081'}, 2:.... }
+
 id = 0
 host = 0
 port = 0
@@ -68,14 +70,14 @@ class cl_ap(Resource):
 			filename = file_name
 			global machines
 			for k,v in machines.items():
-				for m,n in v.items():
+				for m,n in v.items():   #m - file dir #n - filenames
 					for i in n:
 						if str(i) == str(filename):
 							file_dir = str(m)
 							port = v['port']
 							dictn = {}
 							dictn.update({str(i): str(file_dir)})
-							dictn.update({'port':port})               # full looping   
+							dictn.update({'port':port})               
 			#for k,v in machines.items():
 			#	for i in v:    
 			#		if str(i) == str(filename):
@@ -86,7 +88,7 @@ class cl_ap(Resource):
 			#			info = {str(i):str(filepath)}
 			#			dictn.update(info)
 			#			dictn.update({'port':port})
-			print 'sent all info to go to file server'		## sending {filename:filepath, port:port}		
+			print 'sent all info to go to file server from ds'		## sending {filename:filepath, port:port}		
 			return jsonify(dictn)				
 
 
@@ -95,5 +97,6 @@ ds.add_resource(cl_ap, '/<string:file_name>')
 
 
 if __name__ == '__main__':
-	app.run(debug=True, host = '0.0.0.0', port = 8080)
+	app.run(
+	 host = '0.0.0.0', port = 8080)
 

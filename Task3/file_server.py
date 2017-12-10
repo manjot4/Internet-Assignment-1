@@ -20,6 +20,28 @@ file_direcs = {
 
 #class name(Resource):
 
+class file_status(Resource):
+	def get(self):
+		parser = reqparse.RequestParser()
+		parser.add_argument('file_info', location = 'json')
+		parser.add_argument('filename', location = 'json')
+		parser.add_argument('version', location = 'json')
+		args = parser.parse_args()
+		file_dir = args['file_info']
+		filename = args['filename']
+		version = args['version']
+		print 'hello'
+		# get the version
+		for k,v in file_direcs.items():
+			for m,n in v.items():
+				if str(m) == str(filename):
+					for i in n:
+						if str(i) == str(version):
+							return {'status' : 'same'}
+						return {'status' : 'not same'}
+
+fs.add_resource(file_status, '/')
+
 class file_s(Resource):
 	def get(self, file_name):
 		parser = reqparse.RequestParser()
@@ -34,12 +56,17 @@ class file_s(Resource):
 				for m,n in v.items():
 					if str(m) == str(filename):
 						for a,b in n.items():
+							# get the version of that file as well
+							version = a
+							# get the filepath
 							filepath = str(b)
 		f = open(str(filepath), 'r')
 		data = f.read()
 		f.close()
+		
+
 		#print 'read all file'
-		return {'file_data' : data}
+		return {'file_data' : data, 'version' : version}
 
 		## client proxy itself gives the filepath 
 	def post(self, file_name):
@@ -55,13 +82,18 @@ class file_s(Resource):
 				for m,n in v.items():
 					if str(m) == str(filename):
 						for a,b in n.items():
+							ver = a
 							filepath = str(b)
+							a = str(int(a)+1)
+							n[str(a)] = n.pop(str(ver))
+		#print 'filepath', filepath
+		print 'filedir', file_direcs
 		## appending the file
 		f = open(str(filepath), 'a')
 		f.write(str(summary))
 		f.close()
 		print 'writing done'
-
+		# have to update version as wee
 		# do change the version of the file...
 		## for now
 		#for k,v in file_direc.items():
@@ -84,14 +116,6 @@ def getmachineid():
 	# gets the machine id
 	## sending the list of files for mapping to direc server
 
-	#files = {}  ## files sent to dir_ser
-	#for k,v in file_direcs.items():
-	#	for i in v:
-	#		#filee = {str(k) : v[i]}
-	#		filee = {str(k) : str(i)}
-	#		files.update(filee)
-	#print 'sending files to directory server'   #new - {filedirec : filename} ,...., old#{filename: filepath, filename:filepath, ...}		
-	#print 'files being sent:', files
 	files = {}  ## files sent to dir_ser
 	for k,v in file_direcs.items():
 		files[str(k)] = [str(i) for i in v]    # {file irec : ['first.txt', ], file_direc : []}
@@ -119,7 +143,7 @@ def getmachineid():
 if __name__ == '__main__':
 	getmachineid()
 	print 'file_direc', file_direcs
-	app.run(debug=True, port = 8081, host = '0.0.0.0')
+	app.run( port = 8081, host = '0.0.0.0')
 	## file server wakes up, goes to dir server for a machine id and when it gets, gives dir a list of files..
 	#mach_id_dir = machine_id
 
