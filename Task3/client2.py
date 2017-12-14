@@ -1,5 +1,12 @@
+# Name - Manjot Singh
+# Student_Id - 16338467
+# Program - client2.py
+#-----------------------#
+
+# importing client proxy library and other libraray sys for input
 import client_proxy
 import sys
+#----------------------#
 
 if __name__ == '__main__':
 	while True:
@@ -22,3 +29,4 @@ if __name__ == '__main__':
 		else:
 			print 'Type Error:'
 				
+#--------END OF CODE----------------#				

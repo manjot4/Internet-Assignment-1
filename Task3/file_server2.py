@@ -1,6 +1,7 @@
+# another file server, in case anyone wants to experiment on multiple file servers running together.
 # Name - Manjot Singh
 # Student_Id - 16338467
-# Program - file_server.py
+# Program - file_server2.py
 #-----------------------#
 from flask import Flask, jsonify, request
 import requests, json
@@ -11,9 +12,10 @@ fs = Api(app)
 
 # filedirectories from my own machine 
 file_direcs = {
-	'files' : {'first.txt' : {'1' : '/Users/manjotsingh/desktop/files/first.txt'}, 'second.txt' : {'1': '/Users/manjotsingh/desktop/files/second.txt'}}, 
-	'files1': {'first.txt' : {'1': '/Users/manjotsingh/desktop/files1/first.txt'}, 'second1.txt' : {'1': '/Users/manjotsingh/desktop/files1/second1.txt'}}
+	'files2' : {'file1.txt' : {'1' : '/Users/manjotsingh/desktop/files2/fle1.txt'}, 'file1.txt' : {'1': '/Users/manjotsingh/desktop/files2/file2.txt'}}, 
+	'files3': {'file4.txt' : {'1': '/Users/manjotsingh/desktop/files3/file4.txt'}, 'file3.txt' : {'1': '/Users/manjotsingh/desktop/files3/file3.txt'}}
 }
+
 
 # if file exists in cache, client_proxy comes in everytime to make sure about the version of file.
 # if same, reads from local cache
@@ -98,7 +100,7 @@ fs.add_resource(file_s, '/<string:file_name>')
 
 # as soon as client wakes up, it gets machine id from direc server
 def getmachineid():
-	params = {'machine_id':'hello', 'port':8081, 'host':'0.0.0.0'}
+	params = {'machine_id':'hello', 'port':8084, 'host':'0.0.0.0'}
 	response = requests.get('http://0.0.0.0:8080/', json = params)
 	response = response.text
 	response = json.loads(response)
@@ -132,7 +134,7 @@ if __name__ == '__main__':
 	# regiters with both of them
 	getmachineid()
 	print 'file_direc', file_direcs
-	app.run( port = 8081, host = '0.0.0.0')
+	app.run( port = 8084, host = '0.0.0.0')
 
 
 
