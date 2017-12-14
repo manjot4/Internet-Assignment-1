@@ -1,128 +1,144 @@
-
-
-# just need to get one worker connect to master and get one file at a time and return avg cc of that, and master can add that all.
-# then try to incorporate multiple workers trying to get job and return results....
-
-
+# Name - Manjot Singh
+# Student_Id - 16338467
+# Program - Master.py
+#-----------------------#
+# importing libraries
 from flask import Flask, jsonify, request
 import requests, json
 from flask_restful import Resource, Api, reqparse
+import time
 app = Flask(__name__)
 ms = Api(app)
+#-----------------------#
 
-## to access 5000 files from my repo
+# Token to access 5000 files
+token = #'not given for security reasons'
+payload = {"access_token" : str(token), "recursive" : 1} 
 
-payload = {"acess_token" : str(token), "recursive" : 1} # recursive
-
+# list stores all sha keys
 sha_lists = []
 
-
-count = 0
-#newtrees = {}
-#trees = {}      #trees: {sha number : all details related to tree}
-                    # in some trees, it mey have all files or it may have folders//
-                    # which have folders will have type = tree...
+# worker id
+id = 0 
 
 def tree_details():
+
     trees = {}
-    # getting all url's
-    commits_address = 'https://api.github.com/repos/manjot4/Internet-Assignment-1/commits'
+    commits_address = 'https://api.github.com/repos/amhiggin/DistributedFilesystem/commits'
     r = requests.get(str(commits_address), params = payload).json() # returns all commits
-    # since there are 19 commits at this time, getting all 19 sha's
     for commit in r:
         if 'sha' in commit:
             sha = commit['sha']
-            sha_lists.append(sha) # storing all my sha's
-            # getting all files at that commit
-            commit_address = 'https://api.github.com/repos/manjot4/Internet-Assignment-1/git/trees/'+str(sha)
+            sha_lists.append(sha)   # all sha keys
+            commit_address = 'https://api.github.com/repos/amhiggin/DistributedFilesystem/git/trees/'+str(sha)
             response = requests.get(str(commit_address), params = payload).json()
             if 'tree' in response:
                 tree_data = []
                 for i in response['tree']:
-                    tree_data.append(i)   # all files at that point in repo..//eg: task3, chatserver and files in them...
-                    trees[sha] = tree_data
+                    tree_data.append(i)   
+                    trees[sha] = tree_data  
     return trees
-
 
 def get_all_files():
     newtrees = {}
     trees = tree_details()
-    for details in trees:   # details sha of commit
-        finalsha = []     # final sha will have all details of files
+    for details in trees:   
+        finalsha = []     
         for i in trees[details]:
             if i['type'] != 'tree':
                 finalsha.append(i)   
         newtrees[details] = finalsha
     return newtrees    
 
-
-
+# to get url of all commits
 def get_all_url():
-    file_urls = [] # contains all url's of all files
-   # newtrees = {}
+    file_urls = [] 
     allfiles = get_all_files()
-    for sha in allfiles:   # i -> sha
-        for filee in allfiles[sha]: #j -> all files at that time
+    for sha in allfiles:   
+        for filee in allfiles[sha]: 
             file_url = filee['url']
             file_urls.append(file_url)
-            global count
-            count = count + 1
-            #print filee['url']
     return file_urls
 
 
-#for i in files:
- #   print i
-  #  print '---'
-#print 'total files\n', count
+number = 0
 
-
-#files = get_all_url()
-
-
-
-
+# cyclomatic Complexity
 cyclocomp = 0.0
-num = 0
+
+# Cyclomatic Complexity adds after every worker submit it's job
 def add_cyclo(cc):
     global cyclocomp
     cyclocomp = cyclocomp + float(cc)
 
-files = get_all_url()
-number = len(files)
+# list to store every worker's return ids    
+return_ids = []
 
+# worker comes, gets jobs and post back back results
+# every worker comes with its worker id
 class ws(Resource):
-    def get(self):  # wrong
+    #gives url to worker
+    def get(self, worker_id):  
+        global files
         global number
-        global num
-        num = num + 1
-        print 'num', num
         global cyclocomp
+        print 'number', number 
         print 'cyclo', cyclocomp 
-        print 'hello'
-        #global num
-        url = files[number-1]
-        number = number-1
-        if number < 0:
+        number = number+1
+        if number >= len(files):
+            print 'final cyclomatic complexity value', cyclocomp/len(files)
             return {'file_url':'done'}
         else:
-            return {'file_url': str(url)}   ## worker is given file url ... 
-    def post(self):
+            url = files[number]
+            return {'file_url': str(url)}   # worker being given the file url/job
+
+     # receives cyclomatic complexity       
+    def post(self, worker_id):
         parser = reqparse.RequestParser()
         parser.add_argument('cc', location = 'json')
         args = parser.parse_args()
-        cc =  args['cc'] # return {'cc': value}
+        cc =  args['cc'] 
         print 'cc', cc
         add_cyclo(cc)
-        #global cyclocomp
-        
         return {'received' : 'thanks'}
 
-
-ms.add_resource(ws, '/')
-
+ms.add_resource(ws, '/<int:worker_id>')
 
 
+# worker comes asks for id and return back the same id
+class rw(Resource):
+    # master gives worker its id/registers worker
+    def get(self):
+        global id
+        id = id+1
+        return {'id' : id}
+
+# master gets back all id's and on getting back last id decides to stop the time 
+    def post(self):
+        global id
+        parser = reqparse.RequestParser()
+        parser.add_argument('id', location = 'json')
+        args = parser.parse_args()
+        return_id =  args['id']
+        print 'return_id', return_id 
+        return_ids.append(return_id)
+        if len(return_ids) == id:
+            endtime = time.time()
+            print 'time taken:', (endtime - start_time)
+        return {'status' : 'thanks pal'}   
+ms.add_resource(rw, '/')
+
+
+#-----------------------------------------------------------#
+#program starts here
 if __name__ == '__main__':
+    # get url of every file on git
+    files = get_all_url()
+    # starting the time here
+    start_time = time.time()
+    print 'start_time', start_time
+    app.run(port = 8080, host = '0.0.0.0')
+  
     
-    app.run(debug=True, port = 8080, host = '0.0.0.0')
+
+####END OF CODE##############
