@@ -76,7 +76,7 @@ class cl_ap(Resource):
 							port = v['port']
 							dictn = {}
 							dictn.update({str(i): str(file_dir)})
-							dictn.update({'port':port})               
+							dictn.update({'port':port})	               
 			print 'sent all info to go to file server from ds'		## sending {filename:filepath, port:port}		
 			return jsonify(dictn)				
 ds.add_resource(cl_ap, '/<string:file_name>')

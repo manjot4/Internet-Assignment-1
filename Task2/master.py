@@ -7,12 +7,13 @@ from flask import Flask, jsonify, request
 import requests, json
 from flask_restful import Resource, Api, reqparse
 import time
+from re import match
 app = Flask(__name__)
 ms = Api(app)
 #-----------------------#
 
 # Token to access 5000 files
-token = #'not given for security reasons'
+token = # for security reasons
 payload = {"access_token" : str(token), "recursive" : 1} 
 
 # list stores all sha keys
@@ -24,13 +25,13 @@ id = 0
 def tree_details():
 
     trees = {}
-    commits_address = 'https://api.github.com/repos/amhiggin/DistributedFilesystem/commits'
+    commits_address = 'https://api.github.com/repos/manjot4/Internet-Assignment-1/commits'
     r = requests.get(str(commits_address), params = payload).json() # returns all commits
     for commit in r:
         if 'sha' in commit:
             sha = commit['sha']
             sha_lists.append(sha)   # all sha keys
-            commit_address = 'https://api.github.com/repos/amhiggin/DistributedFilesystem/git/trees/'+str(sha)
+            commit_address = 'https://api.github.com/repos/manjot4/Internet-Assignment-1/git/trees/'+str(sha)
             response = requests.get(str(commit_address), params = payload).json()
             if 'tree' in response:
                 tree_data = []
@@ -50,13 +51,22 @@ def get_all_files():
         newtrees[details] = finalsha
     return newtrees    
 
+# make sures it matches only python files extensions.
+def pyth_file(filename):
+    if match('.*\.py', filename):
+        return True
+    else:
+        return False    
+
 # to get url of all commits
 def get_all_url():
     file_urls = [] 
     allfiles = get_all_files()
     for sha in allfiles:   
         for filee in allfiles[sha]: 
-            file_url = filee['url']
+            # make sure it is a python file...
+            if filee['type'] == 'blob' and pyth_file(filee['path']):
+                file_url = filee['url']
             file_urls.append(file_url)
     return file_urls
 
@@ -137,7 +147,7 @@ if __name__ == '__main__':
     # starting the time here
     start_time = time.time()
     print 'start_time', start_time
-    app.run(port = 8080, host = '0.0.0.0')
+    app.run(debug = True, port = 8080, host = '0.0.0.0')
   
     
 

@@ -9,11 +9,12 @@ from radon.complexity import cc_rank, SCORE
 from flask import Flask, jsonify, request
 import requests, json
 from flask_restful import Resource, Api, reqparse
+import os
 
 # -----------------------#
 
 #Token to access 5000 files, otherwise will have access to 60 files an hour
-token = # 'not given for security reasons'
+token =  # not given for security reasons
 payload = {"access_token" : str(token), "recursive" : 1}
 headers = {'Accept':'application/vnd.github.VERSION.raw'}
 
@@ -27,6 +28,12 @@ config = Config(
         min='A',
         max='F',
     )
+
+# directory for storing files if directory doesn't exist
+filedirname = 'data_files'
+if not os.path.exists(str(filedirname)):
+	os.makedirs(str(filedirname))
+
 
 # register with the master and get an id
 get_id = requests.get('http://0.0.0.0:8080/')
@@ -57,7 +64,7 @@ while(True):
 	data = filee.content
 	#saves data into a file
 	i = i+1
-	filename = '/Users/manjotsingh/desktop/data_files/file'+str(i)+'.py'
+	filename = str(filedirname)+'/'+str(i)+'.py'
 	f = open(str(filename), "w+")
 	f.write(data)   
 	f.close()
