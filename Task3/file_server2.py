@@ -12,8 +12,8 @@ fs = Api(app)
 
 # filedirectories from my own machine 
 file_direcs = {
-	'files2' : {'file1.txt' : {'1' : '/Users/manjotsingh/desktop/files2/fle1.txt'}, 'file1.txt' : {'1': '/Users/manjotsingh/desktop/files2/file2.txt'}}, 
-	'files3': {'file4.txt' : {'1': '/Users/manjotsingh/desktop/files3/file4.txt'}, 'file3.txt' : {'1': '/Users/manjotsingh/desktop/files3/file3.txt'}}
+	'files2' : {'file1.txt' : {'1' : 'files2/fle1.txt'}, 'file1.txt' : {'1': 'files2/file2.txt'}}, 
+	'files3': {'file4.txt' : {'1': 'files3/file4.txt'}, 'file3.txt' : {'1': 'files3/file3.txt'}}
 }
 
 

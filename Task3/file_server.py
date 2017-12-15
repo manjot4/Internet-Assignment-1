@@ -11,8 +11,8 @@ fs = Api(app)
 
 # filedirectories from my own machine 
 file_direcs = {
-	'files' : {'first.txt' : {'1' : '/Users/manjotsingh/desktop/files/first.txt'}, 'second.txt' : {'1': '/Users/manjotsingh/desktop/files/second.txt'}}, 
-	'files1': {'first.txt' : {'1': '/Users/manjotsingh/desktop/files1/first.txt'}, 'second1.txt' : {'1': '/Users/manjotsingh/desktop/files1/second1.txt'}}
+	'files' : {'first.txt' : {'1' : 'files/first.txt'}, 'second.txt' : {'1': 'files/second.txt'}}, 
+	'files1': {'first.txt' : {'1': 'files1/first.txt'}, 'second1.txt' : {'1': 'files1/second1.txt'}}
 }
 
 # if file exists in cache, client_proxy comes in everytime to make sure about the version of file.
