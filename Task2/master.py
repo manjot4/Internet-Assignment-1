@@ -147,7 +147,7 @@ if __name__ == '__main__':
     # starting the time here
     start_time = time.time()
     print 'start_time', start_time
-    app.run(debug = True, port = 8080, host = '0.0.0.0')
+    app.run(port = 8080, host = '0.0.0.0')
   
     
 
