@@ -14,7 +14,7 @@ import os
 # -----------------------#
 
 #Token to access 5000 files, otherwise will have access to 60 files an hour
-token =  # not given for security reasons
+token =  'b98a32d15be3f23912a724135df038647b837e99'# not given for security reasons
 payload = {"access_token" : str(token), "recursive" : 1}
 headers = {'Accept':'application/vnd.github.VERSION.raw'}
 

@@ -7,13 +7,12 @@ from flask import Flask, jsonify, request
 import requests, json
 from flask_restful import Resource, Api, reqparse
 import time
-from re import match
 app = Flask(__name__)
 ms = Api(app)
 #-----------------------#
 
 # Token to access 5000 files
-token = # for security reasons
+token = # not given for security reasons
 payload = {"access_token" : str(token), "recursive" : 1} 
 
 # list stores all sha keys
@@ -53,7 +52,7 @@ def get_all_files():
 
 # make sures it matches only python files extensions.
 def pyth_file(filename):
-    if match('.*\.py', filename):
+    if str(filename).endswith('.py'):
         return True
     else:
         return False    
