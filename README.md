@@ -18,3 +18,9 @@
 1. Construction of file system with multiple file servers, directory server, lock server, client proxy and various clients. 
 2. All information can be found in Task3 folder above.
 
+<b>STATEMENTS : 
+
+I have read and I understand the plagiarism provisions and the General Regulations of the University Calender for the current year, found at: http://www.tcd.ie/calender
+I have also completed the online tutorial on avoiding plagiarism ‘Ready, Steady, Write’ , located at http://tcd-ie.libguides.com/plagiarism/ready-steady-write
+
+<b>Signature – Manjot Singh
