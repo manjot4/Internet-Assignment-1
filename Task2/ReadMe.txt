@@ -36,7 +36,7 @@ flask-restful
 requests
 json
 time
-re, match
+
 
 Repository:
 This folder(task2) contains Readme.txt, worker.py, script.sh, master.py, graph.png files.
@@ -44,6 +44,7 @@ This folder(task2) contains Readme.txt, worker.py, script.sh, master.py, graph.p
 Launch the program:
 #The repository used for this process is my own repository.
 # 'manjot4/Internet-Assignment-1'
+But the graph has been obtained/made on some other repository which has large number of commits.
 
 To run the files, please follow the process:
 1. Run the master.py first and when the time starts, go to step 2.
